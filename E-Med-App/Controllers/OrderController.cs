@@ -1,8 +1,9 @@
-﻿// OrderController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
 using E_Med_App.Models;
+using Microsoft.EntityFrameworkCore;
+using E_Med_App.Data;
 
 namespace E_Med_App.Controllers
 {
@@ -10,28 +11,28 @@ namespace E_Med_App.Controllers
     [Route("[controller]")]
     public class OrderController : ControllerBase
     {
-        private readonly List<Order> _orders;
-        private readonly List<OrderDetail> _orderDetails;
+        private readonly ApplicationDbContext _context;
 
-        public OrderController()
+        public OrderController(ApplicationDbContext context)
         {
-            _orders = new List<Order>();
-            _orderDetails = new List<OrderDetail>();
+            _context = context;
         }
 
         [HttpPost]
         [Route("AddOrder")]
-        public IActionResult AddOrder(Order order)
+        public IActionResult AddOrder([FromBody] Order order)
         {
-            _orders.Add(order);
+            _context.Orders.Add(order);
+            _context.SaveChanges();
             return Ok("Order added successfully.");
         }
 
         [HttpPost]
         [Route("AddOrderDetail")]
-        public IActionResult AddOrderDetail(OrderDetail orderDetail)
+        public IActionResult AddOrderDetail([FromBody] OrderDetail orderDetail)
         {
-            _orderDetails.Add(orderDetail);
+            _context.OrderDetails.Add(orderDetail);
+            _context.SaveChanges();
             return Ok("Order detail added successfully.");
         }
 
@@ -39,14 +40,16 @@ namespace E_Med_App.Controllers
         [Route("GetOrders")]
         public IActionResult GetOrders()
         {
-            return Ok(_orders);
+            var orders = _context.Orders.ToList();
+            return Ok(orders);
         }
 
         [HttpGet]
         [Route("GetOrderDetails")]
         public IActionResult GetOrderDetails()
         {
-            return Ok(_orderDetails);
+            var orderDetails = _context.OrderDetails.ToList();
+            return Ok(orderDetails);
         }
     }
 }

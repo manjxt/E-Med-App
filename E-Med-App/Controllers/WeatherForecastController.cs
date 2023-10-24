@@ -10,6 +10,7 @@ namespace E_Med_App.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+
     public class MedicinesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;

@@ -57,6 +57,9 @@ namespace E_Med_App.Migrations
                     b.Property<int>("MedId")
                         .HasColumnType("int");
 
+                    b.Property<int>("MedicineId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
@@ -65,7 +68,7 @@ namespace E_Med_App.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MedId");
+                    b.HasIndex("MedicineId");
 
                     b.HasIndex("UserId");
 
@@ -181,7 +184,7 @@ namespace E_Med_App.Migrations
                 {
                     b.HasOne("E_Med_App.Models.Medicine", "Medicine")
                         .WithMany()
-                        .HasForeignKey("MedId")
+                        .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

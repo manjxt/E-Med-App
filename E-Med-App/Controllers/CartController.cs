@@ -6,8 +6,94 @@ using Microsoft.EntityFrameworkCore;
 using E_Med_App.Data;
 using System.Linq;
 
-/*
 namespace E_Med_App.Controllers
+{
+    [ApiController]
+    [Route("[controller]")]
+    public class CartController : ControllerBase
+    {
+        private readonly ApplicationDbContext _context;
+
+        public CartController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        [HttpPost]
+        [Route("AddCart")]
+        public async Task<IActionResult> AddCart(Cart cart)
+        {
+            try
+            {
+                _context.Carts.Add(cart);
+                await _context.SaveChangesAsync();
+                return Ok("Cart added successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to add the cart. Error: {ex.Message}");
+            }
+        }
+
+        [HttpGet]
+        [Route("GetCarts")]
+        public async Task<IActionResult> GetCarts()
+        {
+            var carts = await _context.Carts.Include(c => c.Medicine).Include(c => c.User).ToListAsync();
+            return Ok(carts);
+        }
+
+        [HttpGet]
+        [Route("GetCart/{id}")]
+        public async Task<IActionResult> GetCart(int id)
+        {
+            var cart = await _context.Carts.Include(c => c.Medicine).Include(c => c.User).FirstOrDefaultAsync(c => c.Id == id);
+
+            if (cart == null)
+            {
+                return NotFound("Cart not found.");
+            }
+
+            return Ok(cart);
+        }
+
+        [HttpPut]
+        [Route("EditCart")]
+        public async Task<IActionResult> EditCart(Cart cart)
+        {
+            try
+            {
+                _context.Carts.Update(cart);
+                await _context.SaveChangesAsync();
+                return Ok("Cart updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Failed to update the cart. Error: {ex.Message}");
+            }
+        }
+
+        [HttpDelete]
+        [Route("DeleteCart/{id}")]
+        public async Task<IActionResult> DeleteCart(int id)
+        {
+            var cart = await _context.Carts.FindAsync(id);
+
+            if (cart == null)
+            {
+                return NotFound("Cart not found.");
+            }
+
+            _context.Carts.Remove(cart);
+            await _context.SaveChangesAsync();
+
+            return Ok("Cart deleted successfully.");
+        }
+    }
+}
+
+
+/*namespace E_Med_App.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -170,156 +256,91 @@ namespace E_Med_App.Controllers
 */
 
 
-namespace MedEcommerce_API.Controllers
+/*
+using Microsoft.AspNetCore.Mvc;
+using E_Med_App.Models;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using E_Med_App.Data;
+using System.Linq;
+
+namespace E_Med_App.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class CartsController : ControllerBase
+    [Route("[controller]")]
+    public class CartController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-
-
-        public CartsController(ApplicationDbContext context)
+        public CartController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-
-
-        // GET: api/Carts
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cart>>> GetCarts()
+        [HttpPost]
+        [Route("add-to-cart")]
+        public async Task<IActionResult> AddToCart(Cart cartItem)
         {
-            if (_context.Carts == null)
-            {
-                return NotFound();
-            }
-            return await _context.Carts.ToListAsync();
-        }
-
-
-
-        // GET: api/Carts/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<IEnumerable<Cart>>> GetCart(int id)
-        {
-            if (_context.Carts == null)
-            {
-                return NotFound();
-            }
-            var cart = await _context.Carts.Include(m => m.Medicine).Where(c => c.UserId == id).ToListAsync();
-
-
-
-            if (cart == null)
-            {
-                return NotFound();
-            }
-
-
-
-            return cart;
-        }
-
-
-
-        // PUT: api/Carts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<ActionResult<IEnumerable<Cart>>> PutCart(int id, Cart cart)
-        {
-            if (id != cart.Id)
-            {
-                return BadRequest();
-            }
-
-
-
-            _context.Entry(cart).State = EntityState.Modified;
-
-
-
             try
             {
+                _context.Carts.Add(cartItem);
                 await _context.SaveChangesAsync();
+
+                return Ok("Item added to cart successfully.");
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateException)
             {
-                if (!CartExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest("Failed to add item to cart.");
             }
-
-
-
-            var item = _context.Carts.Include(u => u.Medicine).Where(u => u.Id == id).ToList();
-            if (item == null)
-            {
-                return NotFound();
-            }
-            return item;
         }
 
-
-
-        // POST: api/Carts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Cart>> PostCart(Cart cart)
+        [HttpPut]
+        [Route("update-cart")]
+        public async Task<IActionResult> UpdateCart(Cart cartItem)
         {
-            if (_context.Carts == null)
+            try
             {
-                return Problem("Entity set 'ApplicationDbContext.Carts'  is null.");
+                _context.Carts.Update(cartItem);
+                await _context.SaveChangesAsync();
+
+                return Ok("Item updated in the cart successfully.");
             }
-            _context.Carts.Add(cart);
+            catch (DbUpdateException)
+            {
+                return BadRequest("Failed to update item in the cart.");
+            }
+        }
+
+        [HttpDelete]
+        [Route("delete-from-cart")]
+        public async Task<IActionResult> DeleteFromCart(int cartId)
+        {
+            var cartItem = await _context.Carts.FindAsync(cartId);
+
+            if (cartItem == null)
+            {
+                return NotFound("Cart item not found.");
+            }
+
+            _context.Carts.Remove(cartItem);
             await _context.SaveChangesAsync();
 
-
-
-            var items = _context.Carts.Include(u => u.Medicine).ToList();
-
-
-
-            return CreatedAtAction("GetCart", new { id = cart.Id }, items);
+            return Ok("Item deleted from cart successfully.");
         }
 
-
-
-        // DELETE: api/Carts/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCart(int id)
+        [HttpGet]
+        [Route("get-cart-items")]
+        public async Task<IActionResult> GetCartItems(int userId)
         {
-            if (_context.Carts == null)
+            var cartItems = await _context.Carts.Where(c => c.UserId == userId).ToListAsync();
+
+            if (cartItems == null || cartItems.Count == 0)
             {
-                return NotFound();
-            }
-            var cart = await _context.Carts.FindAsync(id);
-            if (cart == null)
-            {
-                return NotFound();
+                return NotFound("No items found in the cart.");
             }
 
-
-
-            _context.Carts.Remove(cart);
-            await _context.SaveChangesAsync();
-
-
-
-            return NoContent();
-        }
-
-
-
-        private bool CartExists(int id)
-        {
-            return (_context.Carts?.Any(e => e.Id == id)).GetValueOrDefault();
+            return Ok(cartItems);
         }
     }
 }
+*/

@@ -4,7 +4,7 @@
 
 namespace E_Med_App.Migrations
 {
-    public partial class AddedOrder : Migration
+    public partial class changedCart : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

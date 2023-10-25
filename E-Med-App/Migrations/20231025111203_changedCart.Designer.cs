@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace E_Med_App.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231018120826_UpdatedMedicineTable")]
-    partial class UpdatedMedicineTable
+    [Migration("20231025111203_changedCart")]
+    partial class changedCart
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -30,10 +30,6 @@ namespace E_Med_App.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("AdminCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -54,30 +50,13 @@ namespace E_Med_App.Migrations
 
             modelBuilder.Entity("E_Med_App.Models.Cart", b =>
                 {
-                    b.Property<int>("CartId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("CartId");
-
-                    b.ToTable("Carts");
-                });
-
-            modelBuilder.Entity("E_Med_App.Models.CartItem", b =>
-                {
-                    b.Property<int>("CartItemId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartItemId"), 1L, 1);
-
-                    b.Property<int>("CartId")
+                    b.Property<int>("MedId")
                         .HasColumnType("int");
 
                     b.Property<int>("MedicineId")
@@ -86,13 +65,16 @@ namespace E_Med_App.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("CartItemId");
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
-                    b.HasIndex("CartId");
+                    b.HasKey("Id");
 
                     b.HasIndex("MedicineId");
 
-                    b.ToTable("CartItems");
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Carts");
                 });
 
             modelBuilder.Entity("E_Med_App.Models.Medicine", b =>
@@ -200,28 +182,23 @@ namespace E_Med_App.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("E_Med_App.Models.CartItem", b =>
+            modelBuilder.Entity("E_Med_App.Models.Cart", b =>
                 {
-                    b.HasOne("E_Med_App.Models.Cart", "Cart")
-                        .WithMany("CartItems")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("E_Med_App.Models.Medicine", "Medicine")
                         .WithMany()
                         .HasForeignKey("MedicineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Cart");
+                    b.HasOne("E_Med_App.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Medicine");
-                });
 
-            modelBuilder.Entity("E_Med_App.Models.Cart", b =>
-                {
-                    b.Navigation("CartItems");
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

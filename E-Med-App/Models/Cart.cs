@@ -8,7 +8,9 @@ using System.ComponentModel.DataAnnotations.Schema;
     {
         [Key]
         public int CartId { get; set; }
-        public string UserId { get; set; }
+        public int UserId { get; set; }
+        [ForeignKey("UserId")]
+        public User User { get; set; }
         public List<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 }
@@ -27,6 +29,7 @@ namespace E_Med_App.Models
     }
 }*/
 
+
 namespace E_Med_App.Models
 {
     public class Cart
@@ -34,11 +37,9 @@ namespace E_Med_App.Models
         [Key]
         public int Id { get; set; }
         public int MedId { get; set; }
-        [ForeignKey("MedId")]
         public Medicine Medicine { get; set; }
         public int Quantity { get; set; }
         public int UserId { get; set; }
-        [ForeignKey("UserId")]
         public User User { get; set; }
     }
 }

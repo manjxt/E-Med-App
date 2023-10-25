@@ -16,8 +16,6 @@ namespace E_Med_App.Models
         [Required]
         public string Password { get; set; }
 
-        [Required]
-        public string AdminCode { get; set; }
 
         // Additional user properties can be added here as needed
     }

@@ -1,6 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using E_Med_App.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace E_Med_App.Models
+/*namespace E_Med_App.Models
 {
     public class Cart
     {
@@ -23,24 +25,20 @@ namespace E_Med_App.Models
         public int CartId { get; set; }
         public Cart Cart { get; set; }
     }
-}
-
-/*
-using System.ComponentModel.DataAnnotations;
+}*/
 
 namespace E_Med_App.Models
 {
     public class Cart
     {
         [Key]
-        public int CartId { get; set; }
-
-        public int UserId { get; set; }
-
-        public int ProductId { get; set; }
-
+        public int Id { get; set; }
+        public int MedId { get; set; }
+        [ForeignKey("MedId")]
+        public Medicine Medicine { get; set; }
         public int Quantity { get; set; }
-        public int Price { get; set;}
-        public int TotalPrice { get; set; }
+        public int UserId { get; set; }
+        [ForeignKey("UserId")]
+        public User User { get; set; }
     }
-}*/
+}

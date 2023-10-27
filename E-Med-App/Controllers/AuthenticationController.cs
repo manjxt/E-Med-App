@@ -27,7 +27,7 @@ namespace E_Med_App.Controllers
 
         [HttpPost]
         [Route("register")]
-        public async Task<IActionResult> Register(User user)
+        public async Task<IActionResult> Register([FromBody] User user)
         {
             try
             {
@@ -38,9 +38,17 @@ namespace E_Med_App.Controllers
 
                 // Add the user to the database
                 _context.Users.Add(user);
+                /*Cart cart = new()
+                {
+                    UserId = user.Id,
+                    Items = new List<Medicine>()
+                };
+                _context.Carts.Add(cart);*/
                 await _context.SaveChangesAsync();
 
-                return Ok("User registered successfully.");
+
+
+                return Ok(user);
             }
             catch (DbUpdateException)
             {
@@ -50,7 +58,7 @@ namespace E_Med_App.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login(User model)
+        public async Task<IActionResult> Login([FromBody] User model)
         {
             try
             {
@@ -64,7 +72,7 @@ namespace E_Med_App.Controllers
 
                 if (existingUser != null)
                 {
-                    return Ok("Login successful.");
+                    return Ok(existingUser);
                 }
                 else
                 {

@@ -29,6 +29,41 @@ namespace E_Med_App.Controllers
             return Ok(medicines);
         }
 
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteMedicine(int id)
+        {
+            var medicine = await _context.Medicines.FindAsync(id);
+               
+            if(medicine == null) {
+                return NotFound();
+            }
+
+             _context.Medicines.Remove(medicine);
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult> EditMedicine(int id, Medicine updatedMedicine)
+        {
+            var medicine = await _context.Medicines.FindAsync(id);
+
+            if (medicine == null)
+            {
+                return NotFound();
+            }
+
+            // Update properties of the medicine based on the provided updatedMedicine object
+            medicine.Name = updatedMedicine.Name;
+            medicine.Description = updatedMedicine.Description;
+            medicine.Price = updatedMedicine.Price;
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
 
     }
 }

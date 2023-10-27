@@ -5,342 +5,90 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using E_Med_App.Data;
 using System.Linq;
+using Microsoft.IdentityModel.Tokens;
 
-namespace E_Med_App.Controllers
+[Route("[controller]")]
+[ApiController]
+public class CartController : ControllerBase
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class CartController : ControllerBase
+    private readonly ApplicationDbContext _context;
+
+    public CartController(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+    }
 
-        public CartController(ApplicationDbContext context)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Cart>>> GetCarts()
+    {
+        return await _context.Carts.Include(c => c.Items).ToListAsync();
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Cart>> CreateCart(Cart cart)
+    {
+        _context.Carts.Add(cart);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetCarts), new { id = cart.Id }, cart);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteCart(int id)
+    {
+        var cart = await _context.Carts.FindAsync(id);
+
+        if (cart == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        [HttpPost]
-        [Route("AddCart")]
-        public async Task<IActionResult> AddCart(Cart cart)
+        // Remove the cart
+        _context.Carts.Remove(cart);
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    [HttpPost("{cartId}/items")]
+    public async Task<ActionResult<CartItem>> AddItemToCart(int cartId, Medicine item)
+    {
+        var cart = await _context.Carts.FindAsync(cartId);
+
+        if (cart == null)
         {
-            try
-            {
-                _context.Carts.Add(cart);
-                await _context.SaveChangesAsync();
-                return Ok("Cart added successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Failed to add the cart. Error: {ex.Message}");
-            }
+            return NotFound();
         }
 
-        [HttpGet]
-        [Route("GetCarts")]
-        public async Task<IActionResult> GetCarts()
+        /*cart.Items.Add(item);*/
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction("GetCarts", new { id = cart.Id }, item);
+    }
+
+    [HttpDelete("{cartId}/items/{itemId}")]
+    public async Task<ActionResult<CartItem>> RemoveItemFromCart(int cartId, int itemId)
+    {
+        var cart = await _context.Carts.FindAsync(cartId);
+
+        if (cart == null)
         {
-            var carts = await _context.Carts.Include(c => c.Medicine).Include(c => c.User).ToListAsync();
-            return Ok(carts);
+            return NotFound();
         }
 
-        [HttpGet]
-        [Route("GetCart/{id}")]
-        public async Task<IActionResult> GetCart(int id)
+        var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
+
+        if (item == null)
         {
-            var cart = await _context.Carts.Include(c => c.Medicine).Include(c => c.User).FirstOrDefaultAsync(c => c.Id == id);
-
-            if (cart == null)
-            {
-                return NotFound("Cart not found.");
-            }
-
-            return Ok(cart);
+            return NotFound();
         }
 
-        [HttpPut]
-        [Route("EditCart")]
-        public async Task<IActionResult> EditCart(Cart cart)
-        {
-            try
-            {
-                _context.Carts.Update(cart);
-                await _context.SaveChangesAsync();
-                return Ok("Cart updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest($"Failed to update the cart. Error: {ex.Message}");
-            }
-        }
+        cart.Items.Remove(item);
+        await _context.SaveChangesAsync();
 
-        [HttpDelete]
-        [Route("DeleteCart/{id}")]
-        public async Task<IActionResult> DeleteCart(int id)
-        {
-            var cart = await _context.Carts.FindAsync(id);
-
-            if (cart == null)
-            {
-                return NotFound("Cart not found.");
-            }
-
-            _context.Carts.Remove(cart);
-            await _context.SaveChangesAsync();
-
-            return Ok("Cart deleted successfully.");
-        }
+        return NoContent();
     }
 }
 
 
-/*namespace E_Med_App.Controllers
-{
-    [ApiController]
-    [Route("[controller]")]
-    public class CartController : ControllerBase
-    {
-        private readonly ApplicationDbContext _context;
-
-        public CartController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        [HttpPost]
-        [Route("AddCart")]
-        public async Task<IActionResult> AddCart(Cart cart)
-        {
-            try
-            {
-                _context.Carts.Add(cart);
-                await _context.SaveChangesAsync();
-
-                return Ok("Cart added successfully.");
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest("Failed to add the cart.");
-            }
-        }
-
-        [HttpGet]
-        [Route("GetCarts")]
-        public async Task<IActionResult> GetCarts()
-        {
-            var carts = await _context.Carts.ToListAsync();
-            return Ok(carts);
-        }
-
-        [HttpGet]
-        [Route("GetCart/{id}")]
-        public async Task<IActionResult> GetCart(int id)
-        {
-            var cart = await _context.Carts.FindAsync(id);
-
-            if (cart == null)
-            {
-                return NotFound("Cart not found.");
-            }
-
-            return Ok(cart);
-        }
-
-        [HttpPut]
-        [Route("EditCart")]
-        public async Task<IActionResult> EditCart(Cart cart)
-        {
-            try
-            {
-                _context.Carts.Update(cart);
-                await _context.SaveChangesAsync();
-
-                return Ok("Cart updated successfully.");
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest("Failed to update the cart.");
-            }
-        }
-
-        [HttpDelete]
-        [Route("DeleteCart/{id}")]
-        public async Task<IActionResult> DeleteCart(int id)
-        {
-            var cart = await _context.Carts.FindAsync(id);
-
-            if (cart == null)
-            {
-                return NotFound("Cart not found.");
-            }
-
-            _context.Carts.Remove(cart);
-            await _context.SaveChangesAsync();
-
-            return Ok("Cart deleted successfully.");
-        }
-
-        [HttpPost]
-        [Route("AddCartItem")]
-        public async Task<IActionResult> AddCartItem(CartItem cartItem)
-        {
-            try
-            {
-                _context.CartItems.Add(cartItem);
-                await _context.SaveChangesAsync();
-
-                return Ok("Cart item added successfully.");
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest("Failed to add the cart item.");
-            }
-        }
-
-        [HttpGet]
-        [Route("GetCartItems")]
-        public async Task<IActionResult> GetCartItems()
-        {
-            var cartItems = await _context.CartItems.ToListAsync();
-            return Ok(cartItems);
-        }
-
-        [HttpGet]
-        [Route("GetCartItem/{id}")]
-        public async Task<IActionResult> GetCartItem(int id)
-        {
-            var cartItem = await _context.CartItems.FindAsync(id);
-
-            if (cartItem == null)
-            {
-                return NotFound("Cart item not found.");
-            }
-
-            return Ok(cartItem);
-        }
-
-        [HttpPut]
-        [Route("EditCartItem")]
-        public async Task<IActionResult> EditCartItem(CartItem cartItem)
-        {
-            try
-            {
-                _context.CartItems.Update(cartItem);
-                await _context.SaveChangesAsync();
-
-                return Ok("Cart item updated successfully.");
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest("Failed to update the cart item.");
-            }
-        }
-
-        [HttpDelete]
-        [Route("DeleteCartItem/{id}")]
-        public async Task<IActionResult> DeleteCartItem(int id)
-        {
-            var cartItem = await _context.CartItems.FindAsync(id);
-
-            if (cartItem == null)
-            {
-                return NotFound("Cart item not found.");
-            }
-
-            _context.CartItems.Remove(cartItem);
-            await _context.SaveChangesAsync();
-
-            return Ok("Cart item deleted successfully.");
-        }
-    }
-}
-*/
-
-
-/*
-using Microsoft.AspNetCore.Mvc;
-using E_Med_App.Models;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using E_Med_App.Data;
-using System.Linq;
-
-namespace E_Med_App.Controllers
-{
-    [ApiController]
-    [Route("[controller]")]
-    public class CartController : ControllerBase
-    {
-        private readonly ApplicationDbContext _context;
-
-        public CartController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        [HttpPost]
-        [Route("add-to-cart")]
-        public async Task<IActionResult> AddToCart(Cart cartItem)
-        {
-            try
-            {
-                _context.Carts.Add(cartItem);
-                await _context.SaveChangesAsync();
-
-                return Ok("Item added to cart successfully.");
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest("Failed to add item to cart.");
-            }
-        }
-
-        [HttpPut]
-        [Route("update-cart")]
-        public async Task<IActionResult> UpdateCart(Cart cartItem)
-        {
-            try
-            {
-                _context.Carts.Update(cartItem);
-                await _context.SaveChangesAsync();
-
-                return Ok("Item updated in the cart successfully.");
-            }
-            catch (DbUpdateException)
-            {
-                return BadRequest("Failed to update item in the cart.");
-            }
-        }
-
-        [HttpDelete]
-        [Route("delete-from-cart")]
-        public async Task<IActionResult> DeleteFromCart(int cartId)
-        {
-            var cartItem = await _context.Carts.FindAsync(cartId);
-
-            if (cartItem == null)
-            {
-                return NotFound("Cart item not found.");
-            }
-
-            _context.Carts.Remove(cartItem);
-            await _context.SaveChangesAsync();
-
-            return Ok("Item deleted from cart successfully.");
-        }
-
-        [HttpGet]
-        [Route("get-cart-items")]
-        public async Task<IActionResult> GetCartItems(int userId)
-        {
-            var cartItems = await _context.Carts.Where(c => c.UserId == userId).ToListAsync();
-
-            if (cartItems == null || cartItems.Count == 0)
-            {
-                return NotFound("No items found in the cart.");
-            }
-
-            return Ok(cartItems);
-        }
-    }
-}
-*/

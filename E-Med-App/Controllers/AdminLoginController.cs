@@ -28,7 +28,7 @@ namespace E_Med_App.Controllers
 
         [HttpPost]
         [Route("Login")]
-        public IActionResult Login(Admin admin)
+        public IActionResult Login([FromBody] Admin admin)
         {
             var existingAdmin = _context.Admins.FirstOrDefault(a => a.UserName == admin.UserName && a.Password == admin.Password);
             if (existingAdmin != null)

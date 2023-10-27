@@ -21,6 +21,13 @@ namespace E_Med_App.Controllers
             _context = context;
         }
 
+        [HttpGet]
+        [Route("Users")]
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        {
+            return await _context.Users.ToListAsync();
+        }
+
         // GET: api/Admin
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Medicine>>> GetMedicines()

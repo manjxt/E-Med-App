@@ -29,6 +29,28 @@ namespace E_Med_App.Controllers
             return Ok(medicines);
         }
 
+        [HttpPost]
+        public async Task<ActionResult> AddMedicine(Medicine medicine)
+        {
+            await _context.Medicines.AddAsync(medicine);
+            await _context.SaveChangesAsync();
+
+            return Ok("Success");
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<IEnumerable<Medicine>>> GetMedicine(int id)
+        {
+            var medicine = await _context.Medicines.FindAsync(id);
+
+            if (medicine == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(medicine);
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteMedicine(int id)
         {
@@ -56,8 +78,10 @@ namespace E_Med_App.Controllers
             }
 
             // Update properties of the medicine based on the provided updatedMedicine object
+            medicine.ImageUrl = updatedMedicine.ImageUrl;
             medicine.Name = updatedMedicine.Name;
             medicine.Description = updatedMedicine.Description;
+            medicine.Seller = updatedMedicine.Seller;
             medicine.Price = updatedMedicine.Price;
 
             await _context.SaveChangesAsync();

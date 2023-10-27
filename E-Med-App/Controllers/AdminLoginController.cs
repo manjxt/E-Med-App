@@ -33,7 +33,7 @@ namespace E_Med_App.Controllers
             var existingAdmin = _context.Admins.FirstOrDefault(a => a.UserName == admin.UserName && a.Password == admin.Password);
             if (existingAdmin != null)
             {
-                return Ok("Login successful.");
+                return Ok(existingAdmin);
             }
             return BadRequest("Invalid username or password.");
         }
